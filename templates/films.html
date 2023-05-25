@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Фильмы{% endblock %}
+
+{% block content %}
+<h1>Фильмы</h1>
+<div class="row row-cols-1 row-cols-md-3 mb-3 text-center pt-4">
+
+  
+
+    {% for film in films %}
+    <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm">
+            {% if film.poster %}
+            <div class="card-header py-3">
+                <img style="width:200px;height:300px;" class="card-img-top" src="data:image/jpeg;base64,{{ film.poster.decode("utf-8") }}" alt="{{ film.name }} poster">
+            </div>
+          {% endif %}
+            <div class="card-body">
+              <h3 class="card-title pricing-card-title">{{ film.name }}</h3>
+
+              <p class="fw-normal">{{ film.description }}</p>
+    
+            </div>
+          </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

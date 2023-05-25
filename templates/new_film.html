@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить фильм{% endblock %}
+
+{% block content %}
+  <h1 class="pb-4">Добавить фильм</h1>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="name">Название</label>
+      <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+      <label for="description">Описание</label>
+      <textarea class="form-control" id="description" name="description" required></textarea>
+    </div>
+    <div class="form-group m-2">
+      <label for="poster">Постер</label>
+      <input type="file" class="form-control-file" id="poster" name="poster" accept="image/*" required>
+    </div>
+    <button type="submit" class="btn btn-primary pt-2">Добавить</button>
+  </form>
+{% endblock %}
