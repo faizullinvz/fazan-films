@@ -177,7 +177,7 @@
                   >Фильмы</a
                 >
               </li>
-              {% if current_user.is_authenticated %}
+              {% if current_user.is_authenticated and current_user.role == 'admin' %}
               <li class="nav-item">
                 <a
                   class="nav-link px-2 text-white"

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Редактирование фильма</h1>
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="form-group mb-2">
+      <label for="name">Название</label>
+      {{ form.name(class="form-control", id="name") }}
+    </div>
+    <div class="form-group mb-2">
+      <label for="description">Описание</label>
+      {{ form.description(class="form-control", id="description") }}
+    </div>
+    <div class="form-group mb-4">
+      <label for="poster">Постер</label>
+      <input type="file" name="poster" id="poster" class="form-control-file">
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+  </form>
+{% endblock %}

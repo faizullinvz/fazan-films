@@ -1,30 +1,63 @@
-{% extends 'base.html' %}
-
-{% block title %}Фильмы{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Фильмы{% endblock %} {% block content
+%}
 <h1>Фильмы</h1>
 <div class="row row-cols-1 row-cols-md-3 mb-3 text-center pt-4">
-
-  
-
-    {% for film in films %}
-    <div class="col">
-        <div class="card mb-4 rounded-3 shadow-sm">
-            {% if film.poster %}
-            <div class="card-header py-3">
-                <img style="width:200px;height:300px;" class="card-img-top" src="data:image/jpeg;base64,{{ film.poster.decode("utf-8") }}" alt="{{ film.name }} poster">
-            </div>
-          {% endif %}
-            <div class="card-body">
-              <h3 class="card-title pricing-card-title">{{ film.name }}</h3>
-
-              <p class="fw-normal">{{ film.description }}</p>
-    
-            </div>
+  {% for film in films %}
+  <div class="col">
+    <div class="card mb-4 rounded-3 shadow-sm">
+      {% if film.poster %}
+      <div class="card-header py-3">
+        <img style="width:200px;height:300px;" class="card-img-top"
+        src="data:image/jpeg;base64,{{ film.poster.decode("utf-8") }}" alt="{{
+        film.name }} poster">
+      </div>
+      {% endif %}
+      <div class="card-body">
+        <h3 class="card-title pricing-card-title">{{ film.name }}</h3>
+        <p class="fw-normal">{{ film.description }}</p>
+      </div>
+      <div class="card-footer">
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+          <div class="d-inline">
+            <a href="{{ url_for('edit_film', id=film.id) }}" class="btn btn-primary">Редактировать</a>
           </div>
+          <div class="d-inline">
+            <form id="delete-form" action="{{ url_for('delete_film', id=film.id) }}" method="POST">
+              <button type="submit" class="btn btn-danger">Удалить</button>
+            </form>
+          </div>
+        
+        {% endif %}
+      </div>
     </div>
+  </div>
   {% endfor %}
 </div>
-
+<style>
+  form#delete-form {
+    display: inline;
+}
+ </style>
+<script>
+  document
+    .getElementById("delete-form")
+    .addEventListener("submit", function (event) {
+      event.preventDefault(); // prevent form submission
+      if (confirm("Вы уверены, что хотите удалить этот фильм?")) {
+        // ask for confirmation
+        fetch(event.target.action, { method: "POST" })
+          .then(function (response) {
+            if (response.ok) {
+              alert("Фильм удален"); // display success message
+              window.location = "{{ url_for('films') }}"; // redirect to homepage
+            } else {
+              alert("Не удалось удалить фильм"); // display error message
+            }
+          })
+          .catch(function (error) {
+            console.error(error);
+          });
+      }
+    });
+</script>
 {% endblock %}

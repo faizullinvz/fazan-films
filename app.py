@@ -7,6 +7,9 @@ from PIL import Image
 import os
 import base64
 from io import BytesIO
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, FileField
+from wtforms.validators import DataRequired, Length
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey"
@@ -43,6 +46,11 @@ class Film(db.Model):
 with app.app_context():
     db.create_all()
     db.session.commit()
+
+class FilmForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(max=500)])
+    poster = FileField('Poster')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -107,35 +115,72 @@ def new_film():
         db.session.commit()
         # Delete the temporary file
         os.remove(poster_path)
-
         flash('Фильм был добавлен!')
         return redirect(url_for('index'))
     return render_template('new_film.html')
 
-@app.route('/records/<int:id>/edit', methods=['GET', 'POST'])
+@app.route('/film/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-def edit_record(id):
+def edit_film(id):
     if current_user.role != 'admin':
         return redirect(url_for('index'))
-    record = Film.query.get_or_404(id)
-    if request.method == 'POST':
-        record.name = request.form['name']
-        record.description = request.form['description']
-        db.session.commit()
-        flash('Record successfully updated')
-        return redirect(url_for('index'))
-    return render_template('edit_record.html', record=record)
 
-@app.route('/records/<int:id>/delete', methods=['POST'])
+    # Get the film to edit from the database
+    film = Film.query.get_or_404(id)
+    form = FilmForm(obj=film)
+    if request.method == 'POST':
+        # Update the film with the new values from the form
+        film.name = request.form['name']
+        film.description = request.form['description']
+
+        # Check if a new poster image was uploaded
+        if request.files['poster'].filename != '':
+            print('Uploading new poster image')
+            poster = request.files['poster']
+
+            # Save the new poster image to a temporary file
+            filename = secure_filename(poster.filename)
+            poster_path = os.path.join(app.root_path, 'static', 'posters', filename)
+            poster.save(poster_path)
+
+            # Open the temporary file and resize the image
+            img = Image.open(poster_path)
+            # Save the image to a BytesIO object
+            buffer = BytesIO()
+            img.save(buffer, format='JPEG')
+            image_bytes = buffer.getvalue()
+
+            # Encode the image bytes as a Base64 string
+            image_string = base64.b64encode(image_bytes)
+
+            # Update the film's poster with the new image
+            film.poster = image_string
+            # Delete the temporary file
+            if 'poster' in request.files:
+                os.remove(poster_path)
+            
+        else:
+            film_bd = Film.query.get_or_404(id)
+            film.poster = film_bd.poster
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        flash('Фильм был обновлен!')
+        return redirect(url_for('films'))
+
+    return render_template('edit_film.html', form=form, film=film)
+
+@app.route('/film/<int:id>/delete', methods=['POST'])
 @login_required
-def delete_record(id):
+def delete_film(id):
     if current_user.role != 'admin':
         return redirect(url_for('index'))
-    record = Film.query.get_or_404(id)
-    db.session.delete(record)
+    film = Film.query.get_or_404(id)
+    db.session.delete(film)
     db.session.commit()
-    flash('Record successfully deleted')
-    return redirect(url_for('index'))
+    flash('Фильм удален')
+    return redirect(url_for('films'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -151,7 +196,7 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully')
+        flash('Аккаунт создан')
         return redirect(url_for('login'))
     return render_template('register.html')
 
